@@ -2,6 +2,12 @@
 
 Данные боты зададют пользователю различные вопросы и предлагают написать правильный ответ. Когда пользователь затрудняется ответить, бот подсказвает правильный ответ.
 
+Проверить работу ботов можно следующим образом:
+
+В телеграме добавить бота `@Quiz_AI_Bot`
+
+В Вконтакте необходимо вступить в сообщество [Викторина](https://vk.com/public197662307), и во вкладке сообщения нажать кнопку `start`.
+
 ## Переменные и среда окружения
 
 Доступны 6 переменных окружения:
@@ -53,10 +59,9 @@ python tg_bot.py
 python vk_bot.py
 ```
 
-## Как задеплоить проект на сервис [heroku](https://dashboard.heroku.com/apps)
+## Деплой на сервис [heroku](https://dashboard.heroku.com/apps)
 
-Необходимо создать новое приложение на сервисе и подключить Github с репозиторием, где находится бот. Нужно создать [Procfile](https://devcenter.heroku.com/articles/procfile). Переменные окружения поместить в [settings](https://dashboard.heroku.com/apps/devman-telegram-bot/settings) `Config var`. Активация окружения Google Cloud производится созданием [bildpack](https://github.com/gerywahyunugraha/heroku-google-application-credentials-buildpack).
-После деплоя проекта необходимо активировать скрипты в разделе [Resources](https://dashboard.heroku.com/apps/speach-bot/resources).
+Боты подготовлены к деплою на Heroku. Создайте приложение на сервере, клонируйте репозиторий. Обязательно в `Settings` пропишите переменные окружения.
 
 ## Дополнительные скрипты в репозитории
 
