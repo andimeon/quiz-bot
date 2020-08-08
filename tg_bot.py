@@ -17,6 +17,9 @@ logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s
 
 logger = logging.getLogger(__name__)
 
+load_dotenv()
+QUIZ = get_quiz_for_bot(os.getenv('QUIZ_FILES_PATH'))
+
 NEW＿QUESTION, ANSWER = range(2)
 
 custom_keyboard = [['Новый вопрос', 'Сдаться'], ['Мой счет']]
@@ -35,7 +38,7 @@ def start(update, context):
     return NEW_QUESTION
 
 
-def new_question(update, context):
+def get_new_question(update, context):
     global quiz_block
     quiz_block = random.choice(QUIZ)
     redis_base.set(update.effective_chat.id, quiz_block['Вопрос'])
@@ -44,7 +47,7 @@ def new_question(update, context):
     return ANSWER
 
 
-def answer(update, context):
+def get_answer(update, context):
     message = update.message.text
 
     if message == quiz_block['Ответ']:
@@ -82,7 +85,7 @@ def give_up(update, context):
     return NEW_QUESTION
 
 
-def score(update, context):
+def get_score(update, context):
     update.message.reply_text(
             'Пока нет очков\n'
             'Для продолжения нажми на "Новый вопрос"\n'
@@ -93,20 +96,14 @@ def score(update, context):
 
 
 def cancel(update, context):
-    user = update.message.from_user
     update.message.reply_text('Пока, увидимся в следующий раз.',
                               reply_markup=ReplyKeyboardRemove())
 
     return ConversationHandler.END
 
 
-
-if __name__ == "__main__":
-    load_dotenv()
-    quiz_files_path = os.getenv('QUIZ_FILES_PATH')
+def main():
     tg_token = os.getenv('TG_TOKEN')
-
-    QUIZ = get_quiz_for_bot(quiz_files_path)
     
     updater = Updater(tg_token, use_context=True)
     dp = updater.dispatcher
@@ -115,13 +112,13 @@ if __name__ == "__main__":
         entry_points=[CommandHandler("start", start)],
 
         states={
-            NEW＿QUESTION: [MessageHandler(Filters.regex('^Новый вопрос$'), new_question),
+            NEW＿QUESTION: [MessageHandler(Filters.regex(r'^Новый вопрос$'), get_new_question),
             
-                           MessageHandler(Filters.regex('^Мой счет$'), score)],
+                           MessageHandler(Filters.regex(r'^Мой счет$'), get_score)],
 
-            ANSWER: [MessageHandler(Filters.regex('^Сдаться$'), give_up),
+            ANSWER: [MessageHandler(Filters.regex(r'^Сдаться$'), give_up),
             
-                     MessageHandler(Filters.text, answer),]
+                     MessageHandler(Filters.text, get_answer),]
         },
 
         fallbacks=[CommandHandler('cancel', cancel)]
@@ -132,3 +129,7 @@ if __name__ == "__main__":
     updater.start_polling()
     
     updater.idle()
+
+
+if __name__ == "__main__":
+    main()
