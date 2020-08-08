@@ -103,7 +103,7 @@ def cancel(update, context):
 
 if __name__ == "__main__":
     load_dotenv()
-    files_path = os.getenv('DIR_FILES')
+    files_path = os.getenv('FILES_PATH')
     tg_token = os.getenv('TG_TOKEN')
 
     QUIZ = get_quiz_for_bot(files_path)

@@ -40,7 +40,7 @@ def send_message(event, text):
 if __name__ == "__main__":
     load_dotenv()
     vk_session = vk_api.VkApi(token=os.getenv('VK_TOKEN'))
-    files_path = os.getenv('DIR_FILES')
+    files_path = os.getenv('FILES_PATH')
 
     QUIZ = get_quiz_for_bot(files_path)
 
