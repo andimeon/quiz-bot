@@ -23,6 +23,9 @@ keyboard.add_button('Сдаться', color=VkKeyboardColor.NEGATIVE)
 keyboard.add_line()
 keyboard.add_button('Мой счет', color=VkKeyboardColor.DEFAULT)
 
+load_dotenv()
+QUIZ = get_quiz_for_bot(os.getenv('QUIZ_FILES_PATH'))
+
 global quiz_block
 
 redis_base = get_database()
@@ -37,12 +40,8 @@ def send_message(event, text):
     )
 
 
-if __name__ == "__main__":
-    load_dotenv()
+def main():
     vk_session = vk_api.VkApi(token=os.getenv('VK_TOKEN'))
-    quiz_files_path = os.getenv('QUIZ_FILES_PATH')
-
-    QUIZ = get_quiz_for_bot(quiz_files_path)
 
     vk_api = vk_session.get_api()
     longpoll = VkLongPoll(vk_session)
@@ -97,3 +96,7 @@ if __name__ == "__main__":
                     Попробуй еще раз
                 ''')
                 send_message(event, text)
+
+
+if __name__ == "__main__":
+    main()
