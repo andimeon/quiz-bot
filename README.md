@@ -16,7 +16,7 @@
 
 `VK_TOKEN` - токен от бота в VK.
 
-`FILES_PATH` - путь к `txt` файлам с вопросами и ответами.
+`QUIZ_FILES_PATH` - путь к `txt` файлам с вопросами и ответами.
 
 `REDIS_URL` - ссылка на облачную версию базы данных [Redis](https://redislabs.com).
 

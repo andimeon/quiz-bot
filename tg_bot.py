@@ -103,10 +103,10 @@ def cancel(update, context):
 
 if __name__ == "__main__":
     load_dotenv()
-    files_path = os.getenv('FILES_PATH')
+    quiz_files_path = os.getenv('QUIZ_FILES_PATH')
     tg_token = os.getenv('TG_TOKEN')
 
-    QUIZ = get_quiz_for_bot(files_path)
+    QUIZ = get_quiz_for_bot(quiz_files_path)
     
     updater = Updater(tg_token, use_context=True)
     dp = updater.dispatcher

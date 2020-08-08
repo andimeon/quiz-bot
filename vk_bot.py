@@ -40,9 +40,9 @@ def send_message(event, text):
 if __name__ == "__main__":
     load_dotenv()
     vk_session = vk_api.VkApi(token=os.getenv('VK_TOKEN'))
-    files_path = os.getenv('FILES_PATH')
+    quiz_files_path = os.getenv('QUIZ_FILES_PATH')
 
-    QUIZ = get_quiz_for_bot(files_path)
+    QUIZ = get_quiz_for_bot(quiz_files_path)
 
     vk_api = vk_session.get_api()
     longpoll = VkLongPoll(vk_session)
