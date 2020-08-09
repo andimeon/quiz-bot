@@ -2,14 +2,31 @@ import re
 import glob
 import json
 import os
+import logging
+
+from dotenv import load_dotenv
+import redis
+
+from redis_connection import get_database
+
+logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+                    level=logging.INFO)
+
+logger = logging.getLogger(__name__)
+
+load_dotenv()
+files_path = os.getenv('QUIZ_FILES_PATH')
+
+redis_base = get_database()
 
 
-def get_quiz_for_bot(files):
-    quiz_files = glob.glob(files)
+def get_quiz_for_bot(files_path):
+    quiz_files = glob.glob(files_path)
     
-    quiz_for_bot = []
+    quiz_for_bot = {}
+    count = 0
     
-    for quiz_file in quiz_files:
+    for loop_num, quiz_file in enumerate(quiz_files):
         with open(quiz_file, 'r', encoding='koi8-r') as file:
             quizzes = file.read()
         
@@ -18,13 +35,20 @@ def get_quiz_for_bot(files):
         
         for question_and_answer in questions_and_answers:
             quiz_block = get_quiz_block(question_and_answer)
-            quiz_for_bot.append(quiz_block)
+            count += 1
+            question_num = f'question_{count}'
+            question_block_as_str = json.dumps(quiz_block, ensure_ascii=False)
+            
+            redis_base.set(question_num, question_block_as_str)
+
+        if loop_num == 350:
+            break
     
     return quiz_for_bot
 
 
 def get_quiz_block(question_and_answer):
-    question, answer, offset, comment = '', '', '', ''
+    question, answer, offset, fail, comment = '', '', '', '', ''
     question_and_answer_blocks = question_and_answer.split('\n\n')
 
     question = question_and_answer_blocks.pop(0).replace('\n', ' ')
@@ -38,12 +62,16 @@ def get_quiz_block(question_and_answer):
             continue
         if re.search(r'Комментарий:', question_and_answer_block):
             comment = get_clean_text('Комментарий:', question_and_answer_block)
+            continue
+        if re.search(r'^Незачет:', question_and_answer_block):
+            fail = get_clean_text('Незачет:', question_and_answer_block)
     
     return {
-        'Вопрос': question,
-        'Ответ': answer,
-        'Зачет': offset,
-        'Комментарий': comment,
+        'question': question,
+        'answer': answer,
+        'offset': offset,
+        'fail': fail,
+        'comment': comment,
     }
 
 
@@ -53,3 +81,12 @@ def get_clean_text(text, text_block):
     else:
         text = re.split(text, text_block).pop(1).replace('\n', ' ')
         return text.replace('.', '').replace('"', '').strip()
+
+
+def main():
+    get_quiz_for_bot(files_path)
+    print('Done!')
+
+
+if __name__ == "__main__":
+    main()
