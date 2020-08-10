@@ -10,7 +10,6 @@ import vk_api
 from vk_api.longpoll import VkLongPoll, VkEventType
 from vk_api.keyboard import VkKeyboard, VkKeyboardColor
 
-from quiz_dict import get_quiz_for_bot
 from redis_connection import get_database_access
 
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
@@ -44,8 +43,6 @@ def get_quiz_block(user_id):
     quiz_block = json.loads(redis_value)
 
     user = f'user_vk_{user_id}'
-    print(user)
-
     last_asked_question = json.dumps({
         'last_asked_question': redis_key})
 
@@ -70,7 +67,6 @@ if __name__ == "__main__":
 
             if event.text == 'Новый вопрос':
                 quiz_block = get_quiz_block(event.user_id)
-                print(quiz_block['answer'])
                 send_message(event, quiz_block['question'])
 
             elif event.text == 'Сдаться':

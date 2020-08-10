@@ -9,7 +9,6 @@ from telegram import (ReplyKeyboardMarkup, ReplyKeyboardRemove)
 from telegram.ext import (Updater, CommandHandler, MessageHandler, Filters,
                           ConversationHandler)
 
-from quiz_dict import get_quiz_for_bot
 from redis_connection import get_database_access
 
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
