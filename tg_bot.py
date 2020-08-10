@@ -25,6 +25,16 @@ redis_base = get_database_access()
 
 
 def start(update, context):
+    global score
+    user = f'user_tg_{update.effective_chat.id}'
+
+    if redis_base.get(user):
+        user_info_str = redis_base.get(user)
+        user_info = json.loads(user_info_str)
+        score = user_info['score']
+    else:
+        score = 0
+
     update.message.reply_text(
         'Привет! Я бот для викторин\n'
         'Для начала нажми на "Новый вопрос"\n'
@@ -36,17 +46,20 @@ def start(update, context):
 
 def get_new_question(update, context):
     global quiz_block
-    user_id = update.effective_chat.id
-    quiz_block = get_quiz_block(user_id)
+    quiz_block = get_quiz_block()
+    print(quiz_block['answer'])
     update.message.reply_text(text=quiz_block['question'], reply_markup=markup)
 
     return ANSWER
 
 
 def get_answer(update, context):
+    global score
     message = update.message.text
 
     if message == quiz_block['answer']:
+        score += 1
+        write_to_database(update.effective_chat.id)
         update.message.reply_text(
             'Правильно!\n'
             'Для продолжения нажми на "Новый вопрос"',
@@ -55,6 +68,8 @@ def get_answer(update, context):
         return NEW_QUESTION
 
     elif re.search(message, quiz_block['offset']):
+        score += 1
+        write_to_database(update.effective_chat.id)
         update.message.reply_text(
             'Почти в точку! Правильный ответ: \n'
             '{}\n\n'
@@ -72,6 +87,7 @@ def get_answer(update, context):
 
 
 def give_up(update, context):
+    write_to_database(update.effective_chat.id)
     update.message.reply_text(
             'Бывает, правильный ответ: \n'
             '{}\n\n'
@@ -83,34 +99,38 @@ def give_up(update, context):
 
 def get_score(update, context):
     update.message.reply_text(
-            'Пока нет очков\n'
+            'У вас {} очков\n'
             'Для продолжения нажми на "Новый вопрос"\n'
-            'Для завершения игры /cancel',
+            'Для завершения игры /cancel'.format(score),
             reply_markup=markup)
     
     return NEW_QUESTION
 
 
 def cancel(update, context):
+    write_to_database(update.effective_chat.id)
     update.message.reply_text('Пока, увидимся в следующий раз.',
                               reply_markup=ReplyKeyboardRemove())
 
     return ConversationHandler.END
 
 
-def get_quiz_block(user_id):
+def get_quiz_block():
+    global redis_key
     redis_key = redis_base.randomkey()
     redis_value = redis_base.get(redis_key)
-    quiz_block = json.loads(redis_value)
 
+    return json.loads(redis_value)
+
+
+def write_to_database(user_id):
     user = f'user_tg_{user_id}'
 
-    last_asked_question = json.dumps({
-        'last_asked_question': redis_key})
+    user_info = json.dumps({
+        'last_asked_question': redis_key,
+        'score': score})
 
-    redis_base.set(user, last_asked_question)
-
-    return quiz_block
+    redis_base.set(user, user_info)
 
 
 def main():
