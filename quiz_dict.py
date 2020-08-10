@@ -41,7 +41,7 @@ def get_quiz_for_bot(files_path):
             
             redis_base.set(question_num, question_block_as_str)
 
-        if loop_num == 350:
+        if loop_num == 350: # Размер зависит каккое количество памяти доступно в базе данных.
             break
     
     return quiz_for_bot
