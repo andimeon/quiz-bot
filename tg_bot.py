@@ -47,7 +47,6 @@ def start(update, context):
 def get_new_question(update, context):
     global quiz_block
     quiz_block = get_quiz_block()
-    print(quiz_block['answer'])
     update.message.reply_text(text=quiz_block['question'], reply_markup=markup)
 
     return ANSWER
