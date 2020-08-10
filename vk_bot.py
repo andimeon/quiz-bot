@@ -37,18 +37,23 @@ def send_message(event, text):
     )
 
 
-def get_quiz_block(user_id):
+def get_quiz_block():
+    global redis_key
     redis_key = redis_base.randomkey()
     redis_value = redis_base.get(redis_key)
-    quiz_block = json.loads(redis_value)
 
+    return json.loads(redis_value)
+
+
+def write_to_database(user_id):
+    global score
     user = f'user_vk_{user_id}'
-    last_asked_question = json.dumps({
-        'last_asked_question': redis_key})
 
-    redis_base.set(user, last_asked_question)
+    user_info = json.dumps({
+        'last_asked_question': redis_key,
+        'score': score})
 
-    return quiz_block
+    redis_base.set(user, user_info)
 
 
 if __name__ == "__main__":
@@ -60,16 +65,26 @@ if __name__ == "__main__":
 
     for event in longpoll.listen():
         if event.type == VkEventType.MESSAGE_NEW and event.to_me:
+            user = f'user_vk_{event.user_id}'
 
             if event.text == 'Start':
+                if redis_base.get(user):
+                    user_info_str = redis_base.get(user)
+                    user_info = json.loads(user_info_str)
+                    score = user_info['score']
+                else:
+                    score = 0
+
                 text = 'Привет! Для начала игры нажми "Новый вопрос"'
                 send_message(event, text)
+                continue
 
             if event.text == 'Новый вопрос':
-                quiz_block = get_quiz_block(event.user_id)
+                quiz_block = get_quiz_block()
                 send_message(event, quiz_block['question'])
 
             elif event.text == 'Сдаться':
+                write_to_database(event.user_id)
                 text = dedent(f'''
                     Бывает!
                     Правильный ответ - {quiz_block['answer']}
@@ -79,10 +94,12 @@ if __name__ == "__main__":
                 send_message(event, text)
 
             elif event.text == 'Мой счет':
-                text = 'Пока счета нет'
+                text = f'Ваш счет {score}'
                 send_message(event, text)
 
             elif event.text == quiz_block['answer']:
+                score += 1
+                write_to_database(event.user_id)
                 text = dedent(f'''
                     Правильно!
                     Для следующего вопроса жми
@@ -91,6 +108,8 @@ if __name__ == "__main__":
                 send_message(event, text)
 
             elif re.search(event.text, quiz_block['offset']):
+                score += 1
+                write_to_database(event.user_id)
                 text = dedent(f'''
                     Почти попал
                     Правильный ответ - {quiz_block['answer']}
