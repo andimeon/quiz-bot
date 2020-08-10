@@ -10,7 +10,7 @@ from telegram.ext import (Updater, CommandHandler, MessageHandler, Filters,
                           ConversationHandler)
 
 from quiz_dict import get_quiz_for_bot
-from redis_connection import get_database
+from redis_connection import get_database_access
 
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
                     level=logging.INFO)
@@ -22,7 +22,7 @@ NEW＿QUESTION, ANSWER = range(2)
 custom_keyboard = [['Новый вопрос', 'Сдаться'], ['Мой счет']]
 markup = ReplyKeyboardMarkup(custom_keyboard)
 
-redis_base = get_database()
+redis_base = get_database_access()
 
 
 def start(update, context):

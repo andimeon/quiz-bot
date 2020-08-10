@@ -11,7 +11,7 @@ from vk_api.longpoll import VkLongPoll, VkEventType
 from vk_api.keyboard import VkKeyboard, VkKeyboardColor
 
 from quiz_dict import get_quiz_for_bot
-from redis_connection import get_database
+from redis_connection import get_database_access
 
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
                     level=logging.INFO)
@@ -26,7 +26,7 @@ keyboard.add_button('Мой счет', color=VkKeyboardColor.DEFAULT)
 
 global quiz_block
 
-redis_base = get_database()
+redis_base = get_database_access()
 
 
 def send_message(event, text):
