@@ -4,6 +4,7 @@ from dotenv import load_dotenv
 import random
 import re
 from textwrap import dedent
+import json
 
 import vk_api
 from vk_api.longpoll import VkLongPoll, VkEventType
@@ -23,9 +24,6 @@ keyboard.add_button('Сдаться', color=VkKeyboardColor.NEGATIVE)
 keyboard.add_line()
 keyboard.add_button('Мой счет', color=VkKeyboardColor.DEFAULT)
 
-load_dotenv()
-QUIZ = get_quiz_for_bot(os.getenv('QUIZ_FILES_PATH'))
-
 global quiz_block
 
 redis_base = get_database()
@@ -40,12 +38,28 @@ def send_message(event, text):
     )
 
 
-def main():
+def get_quiz_block(user_id):
+    redis_key = redis_base.randomkey()
+    redis_value = redis_base.get(redis_key)
+    quiz_block = json.loads(redis_value)
+
+    user = f'user_vk_{user_id}'
+    print(user)
+
+    last_asked_question = json.dumps({
+        'last_asked_question': redis_key})
+
+    redis_base.set(user, last_asked_question)
+
+    return quiz_block
+
+
+if __name__ == "__main__":
+    load_dotenv()
     vk_session = vk_api.VkApi(token=os.getenv('VK_TOKEN'))
 
     vk_api = vk_session.get_api()
     longpoll = VkLongPoll(vk_session)
-    quiz_block = random.choice(QUIZ)
 
     for event in longpoll.listen():
         if event.type == VkEventType.MESSAGE_NEW and event.to_me:
@@ -55,15 +69,14 @@ def main():
                 send_message(event, text)
 
             if event.text == 'Новый вопрос':
-                quiz_block = random.choice(QUIZ)
-                print(quiz_block['Ответ'])
-                redis_base.set(event.user_id, quiz_block['Вопрос'])
-                send_message(event, quiz_block['Вопрос'])
+                quiz_block = get_quiz_block(event.user_id)
+                print(quiz_block['answer'])
+                send_message(event, quiz_block['question'])
 
             elif event.text == 'Сдаться':
                 text = dedent(f'''
                     Бывает!
-                    Правильный ответ - {quiz_block['Ответ']}
+                    Правильный ответ - {quiz_block['answer']}
                     Для следующего вопроса жми
                     "Новый вопрос"
                 ''')
@@ -73,7 +86,7 @@ def main():
                 text = 'Пока счета нет'
                 send_message(event, text)
 
-            elif event.text == quiz_block['Ответ']:
+            elif event.text == quiz_block['answer']:
                 text = dedent(f'''
                     Правильно!
                     Для следующего вопроса жми
@@ -81,10 +94,10 @@ def main():
                 ''')
                 send_message(event, text)
 
-            elif re.search(event.text, quiz_block['Зачет']):
+            elif re.search(event.text, quiz_block['offset']):
                 text = dedent(f'''
                     Почти попал
-                    Правильный ответ - {quiz_block['Ответ']}
+                    Правильный ответ - {quiz_block['answer']}
                     Для следующего вопроса жми
                     "Новый вопрос"
                 ''')
@@ -96,7 +109,3 @@ def main():
                     Попробуй еще раз
                 ''')
                 send_message(event, text)
-
-
-if __name__ == "__main__":
-    main()
