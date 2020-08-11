@@ -136,7 +136,7 @@ python vk_bot.py
 }
 ```
 
-`reddis_connection.py` устанавливает связь с базой данных `Redis`.
+`redis_handler.py` обработчик запросов к базе данных Redis.
 
 ## Цель проекта
 
