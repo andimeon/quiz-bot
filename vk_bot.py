@@ -10,7 +10,6 @@ import vk_api
 from vk_api.longpoll import VkLongPoll, VkEventType
 from vk_api.keyboard import VkKeyboard, VkKeyboardColor
 
-from redis_connection import get_database_access
 from redis_handler import RedisHandler
 
 logger = logging.getLogger(__name__)
