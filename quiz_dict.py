@@ -75,7 +75,7 @@ def get_quiz_block(question_and_answer):
     }
 
 
-def get_clean_text(text, text_block):
+def clean_text(text, text_block):
     if text == 'Комментарий:':
         return re.split(text, text_block).pop(1).replace('\n', ' ')
     else:
