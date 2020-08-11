@@ -36,7 +36,6 @@ def start(update, context):
 
 def get_new_question(update, context):
     redis_base.initiate_new_quiz_block()
-    print(redis_base.answer)
     update.message.reply_text(text=redis_base.question, reply_markup=markup)
 
     return ANSWER
