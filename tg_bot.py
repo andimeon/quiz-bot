@@ -11,9 +11,6 @@ from telegram.ext import (Updater, CommandHandler, MessageHandler, Filters,
 
 from redis_connection import get_database_access
 
-logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-                    level=logging.INFO)
-
 logger = logging.getLogger(__name__)
 
 NEW＿QUESTION, ANSWER = range(2)
@@ -133,6 +130,9 @@ def write_to_database(user_id):
 
 
 def main():
+    logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+                    level=logging.INFO)
+    
     load_dotenv()
     tg_token = os.getenv('TG_TOKEN')
     
