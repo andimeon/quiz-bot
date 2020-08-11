@@ -11,6 +11,7 @@ from vk_api.longpoll import VkLongPoll, VkEventType
 from vk_api.keyboard import VkKeyboard, VkKeyboardColor
 
 from redis_connection import get_database_access
+from redis_handler import RedisHandler
 
 logger = logging.getLogger(__name__)
 
@@ -20,9 +21,7 @@ keyboard.add_button('Сдаться', color=VkKeyboardColor.NEGATIVE)
 keyboard.add_line()
 keyboard.add_button('Мой счет', color=VkKeyboardColor.DEFAULT)
 
-global quiz_block
-
-redis_base = get_database_access()
+redis_base = RedisHandler()
 
 
 def send_message(event, text):
@@ -34,29 +33,10 @@ def send_message(event, text):
     )
 
 
-def get_quiz_block():
-    global redis_key
-    redis_key = redis_base.randomkey()
-    redis_value = redis_base.get(redis_key)
-
-    return json.loads(redis_value)
-
-
-def write_to_database(user_id):
-    global score
-    user = f'user_vk_{user_id}'
-
-    user_info = json.dumps({
-        'last_asked_question': redis_key,
-        'score': score})
-
-    redis_base.set(user, user_info)
-
-
 if __name__ == "__main__":
     logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
                         level=logging.INFO)
-                        
+
     load_dotenv()
     vk_session = vk_api.VkApi(token=os.getenv('VK_TOKEN'))
 
@@ -68,38 +48,33 @@ if __name__ == "__main__":
             user = f'user_vk_{event.user_id}'
 
             if event.text == 'Start':
-                if redis_base.get(user):
-                    user_info_str = redis_base.get(user)
-                    user_info = json.loads(user_info_str)
-                    score = user_info['score']
-                else:
-                    score = 0
-
+                redis_base.initiate_score(user)
                 text = 'Привет! Для начала игры нажми "Новый вопрос"'
                 send_message(event, text)
                 continue
 
             if event.text == 'Новый вопрос':
-                quiz_block = get_quiz_block()
-                send_message(event, quiz_block['question'])
+                redis_base.initiate_new_quiz_block()
+                print(redis_base.answer)
+                send_message(event, redis_base.question)
 
             elif event.text == 'Сдаться':
-                write_to_database(event.user_id)
+                redis_base.set_score()
                 text = dedent(f'''
                     Бывает!
-                    Правильный ответ - {quiz_block['answer']}
+                    Правильный ответ - {redis_base.answer}
                     Для следующего вопроса жми
                     "Новый вопрос"
                 ''')
                 send_message(event, text)
 
             elif event.text == 'Мой счет':
-                text = f'Ваш счет {score}'
+                text = f'Ваш счет {redis_base.score}'
                 send_message(event, text)
 
-            elif event.text == quiz_block['answer']:
-                score += 1
-                write_to_database(event.user_id)
+            elif event.text == redis_base.answer:
+                redis_base.score += 1
+                redis_base.set_score()
                 text = dedent(f'''
                     Правильно!
                     Для следующего вопроса жми
@@ -107,12 +82,12 @@ if __name__ == "__main__":
                 ''')
                 send_message(event, text)
 
-            elif re.search(event.text, quiz_block['offset']):
-                score += 1
-                write_to_database(event.user_id)
+            elif re.search(event.text, redis_base.offset):
+                redis_base.score += 1
+                redis_base.set_score()
                 text = dedent(f'''
                     Почти попал
-                    Правильный ответ - {quiz_block['answer']}
+                    Правильный ответ - {redis_base.answer}
                     Для следующего вопроса жми
                     "Новый вопрос"
                 ''')
