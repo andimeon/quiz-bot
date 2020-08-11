@@ -25,8 +25,9 @@ def get_quiz_for_bot(files_path):
     
     quiz_for_bot = {}
     count = 0
+    max_number_read_files = os.getenv('MAX_NUMBER_READ_FILES')
     
-    for loop_num, quiz_file in enumerate(quiz_files):
+    for quiz_file in quiz_file[:max_number_read_files]:
         with open(quiz_file, 'r', encoding='koi8-r') as file:
             quizzes = file.read()
         
@@ -40,9 +41,6 @@ def get_quiz_for_bot(files_path):
             question_block_as_str = json.dumps(quiz_block, ensure_ascii=False)
             
             redis_base.set(question_num, question_block_as_str)
-
-        if loop_num == 350: # Размер зависит каккое количество памяти доступно в базе данных.
-            break
     
     return quiz_for_bot
 
