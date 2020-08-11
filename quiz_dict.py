@@ -11,16 +11,11 @@ from redis_connection import get_database
 
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
                     level=logging.INFO)
-
 logger = logging.getLogger(__name__)
 
 load_dotenv()
-files_path = os.getenv('QUIZ_FILES_PATH')
 
-redis_base = get_database()
-
-
-def get_quiz_for_bot(files_path):
+def get_quiz_for_bot(files_path, redis_base):
     quiz_files = glob.glob(files_path)
     
     quiz_for_bot = {}
@@ -82,7 +77,10 @@ def clean_text(text, text_block):
 
 
 def main():
-    get_quiz_for_bot(files_path)
+    files_path = os.getenv('QUIZ_FILES_PATH')
+    redis_base = get_database()
+
+    get_quiz_for_bot(files_path, redis_base)
     print('Done!')
 
 
