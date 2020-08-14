@@ -8,11 +8,18 @@
 
 ```json
 {
-  "user_vk_94719491": {"last_asked_question": "question_8291",
-                       "score": 7},
-  "user_tg_394629364": {"last_asked_question": "question_9249",
-                       "score": 15}
+  "user_vk_94719491": {"last_asked_question": "question_8291"},
+  "user_tg_394629364": {"last_asked_question": "question_9249"}
   ...
+}
+```
+
+и очки игрока, в виде:
+
+```json
+{
+  "score_tg_94719491": "12",
+  "score_vk_394629364": "9"
 }
 ```
 
@@ -34,11 +41,13 @@ Vk (Вконтакте)
 
 ## Переменные и среда окружения
 
-Доступны 7 переменных окружения:
+Доступны 8 переменных окружения:
 
 `TG_TOKEN` - токен от бота в телеграмме.
 
 `VK_TOKEN` - токен от бота в VK.
+
+`VK_GROUP_ID` - id группы, от которой работает бот.
 
 `QUIZ_FILES_PATH` - путь к `txt` файлам с вопросами и ответами.
 
