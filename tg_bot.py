@@ -22,8 +22,8 @@ redis_base = RedisHandler()
 
 
 def start(update, context):
-    user = f'user_tg_{update.effective_chat.id}'
-    redis_base.initiate_score(user)
+    score_id = f'score_tg_{update.effective_chat.id}'
+    redis_base.initiate_score(score_id)
 
     update.message.reply_text(
         'Привет! Я бот для викторин\n'
@@ -35,18 +35,20 @@ def start(update, context):
 
 
 def get_new_question(update, context):
-    redis_base.initiate_new_quiz_block()
+    user = f'user_tg_{update.effective_chat.id}'
+    redis_base.initiate_new_quiz_block(user)
+    print(redis_base.answer)
     update.message.reply_text(text=redis_base.question, reply_markup=markup)
 
     return ANSWER
 
 
 def get_answer(update, context):
+    score_id = f'score_tg_{update.effective_chat.id}'
     message = update.message.text
 
     if message == redis_base.answer:
-        redis_base.score += 1
-        redis_base.set_score()
+        redis_base.set_score(score_id, 1)
         update.message.reply_text(
             'Правильно!\n'
             'Для продолжения нажми на "Новый вопрос"',
@@ -55,8 +57,7 @@ def get_answer(update, context):
         return NEW_QUESTION
 
     elif re.search(message, redis_base.offset):
-        redis_base.score += 1
-        redis_base.set_score()
+        redis_base.set_score(score_id, 1)
         update.message.reply_text(
             'Почти в точку! Правильный ответ: \n'
             '{}\n\n'
@@ -74,7 +75,8 @@ def get_answer(update, context):
 
 
 def give_up(update, context):
-    redis_base.set_score()
+    score_id = f'score_tg_{update.effective_chat.id}'
+    redis_base.set_score(score_id)
     update.message.reply_text(
             'Бывает, правильный ответ: \n'
             '{}\n\n'
@@ -85,17 +87,17 @@ def give_up(update, context):
 
 
 def get_score(update, context):
+    score_id = f'score_tg_{update.effective_chat.id}'
     update.message.reply_text(
             'У вас {} очков\n'
             'Для продолжения нажми на "Новый вопрос"\n'
-            'Для завершения игры /cancel'.format(redis_base.score),
+            'Для завершения игры /cancel'.format(redis_base.get_score(score_id)),
             reply_markup=markup)
     
     return NEW_QUESTION
 
 
 def cancel(update, context):
-    redis_base.set_score()
     update.message.reply_text('Пока, увидимся в следующий раз.',
                               reply_markup=ReplyKeyboardRemove())
 
