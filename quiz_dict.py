@@ -7,20 +7,18 @@ import logging
 from dotenv import load_dotenv
 import redis
 
-from redis_connection import get_database
+from redis_handler import RedisHandler
 
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
                     level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-load_dotenv()
 
-def get_quiz_for_bot(files_path, redis_base):
+def get_quiz_for_bot(files_path, redis_base, max_number_read_files):
     quiz_files = glob.glob(files_path)
     
     quiz_for_bot = {}
     count = 0
-    max_number_read_files = os.getenv('MAX_NUMBER_READ_FILES')
     
     for quiz_file in quiz_file[:max_number_read_files]:
         with open(quiz_file, 'r', encoding='koi8-r') as file:
@@ -77,10 +75,12 @@ def clean_text(text, text_block):
 
 
 def main():
+    load_dotenv()
+    max_number_read_files = os.getenv('MAX_NUMBER_READ_FILES')
     files_path = os.getenv('QUIZ_FILES_PATH')
-    redis_base = get_database()
+    redis_base = RedisHandler()
 
-    get_quiz_for_bot(files_path, redis_base)
+    get_quiz_for_bot(files_path, redis_base, max_number_read_files)
     print('Done!')
 
 
